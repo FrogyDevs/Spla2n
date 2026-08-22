@@ -154,7 +154,27 @@ const updatePlayers = () => {
     addTrail(player2);
 };
 
-const gameLoop = () => {
+const gameDuration = 10;
+let gameStartTime = 0;
+
+const drawTimer = (currentTime: number) => {
+    const elapsedTime = (currentTime - gameStartTime) / 1000;
+    const remainingTime = Math.max(
+        0,
+        Math.ceil(gameDuration - elapsedTime)
+    );
+
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText(`Time: ${remainingTime}s`, 20, 30);
+
+    if (remainingTime === 0) {
+        ctx.fillText('Game Over!', canvas.width / 2 - 50, canvas.height / 2);
+    }
+    return remainingTime;
+};
+
+const gameLoop = (currentTime: number) => {
     if (currentScreen !== 'game') {
         gameIsRunning = false;
         return;
@@ -162,8 +182,13 @@ const gameLoop = () => {
 
     updatePlayers();
     drawGame();
+    const remainingTime = drawTimer(currentTime);
 
-    requestAnimationFrame(gameLoop);
+    if (remainingTime > 0) {
+        requestAnimationFrame(gameLoop);
+    } else {
+        gameIsRunning = false;
+    }
 };
 
 const startGame = () => {
@@ -174,9 +199,11 @@ const startGame = () => {
 
     if (!gameIsRunning) {
         gameIsRunning = true;
-        gameLoop();
+        gameStartTime = performance.now();
+        gameLoop(gameStartTime);
     }
 };
+
 
 const showMainMenu = () => {
     currentScreen = 'main';
