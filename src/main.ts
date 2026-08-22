@@ -33,7 +33,7 @@ let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
 const tileSize = 20;
-const trailThickness = 20;
+const trailThickness = 50;
 const speed = 5;
 const keys = new Set<string>();
 
@@ -182,11 +182,6 @@ const drawTimer = () => {
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.fillText(`Time: ${Math.ceil(remainingTime)}s`, 20, 30);
-
-    if (remainingTime === 0) {
-        ctx.fillText('Game Over!', canvas.width / 2 - 50, canvas.height / 2);
-    }
-
     return remainingTime;
 };
 
@@ -270,16 +265,11 @@ const updateTimer = (currentTime: number) => {
     lastFrameTime = currentTime;
 };
 
-const showColorPropotion = (player: Player) => {
-    const rows = grid.length;
-    const columns = grid[0].length;
-    const gridSize = rows * columns;
-    return grid.flat().reduce((acc, color) => {
-        if (color === player.color) {
-            return acc + 1;
-        }
-        return (acc / gridSize) * 100;
-    }, 0);
+const showColorProportion = (player: Player) => {
+    const totalCells = grid.length * (grid[0]?.length || 0);
+    if (totalCells === 0) return 0;
+    const playerCells = grid.flat().filter((cell) => cell === player.color).length;
+    return (playerCells / totalCells) * 100;
 }
 
 const drawText = (text: string, x: number, y: number, color: string) => {
@@ -305,19 +295,17 @@ const gameLoop = (currentTime: number) => {
         requestAnimationFrame(gameLoop);
     } else {
         gameIsRunning = false;
-        const player1Score = showColorPropotion(player1);
-        const player2Score = showColorPropotion(player2);
-        const rounded1 = Number(player1Score.toFixed(2));
-        const rounded2 = Number(player2Score.toFixed(2));
-        if (rounded1 > rounded2) {
-            drawText('Player 1 Wins!', canvas.width / 2 - 70, canvas.height / 2, player1.color);
-        } else if (rounded2 > rounded1) {
-            drawText('Player 2 Wins!', canvas.width / 2 - 70, canvas.height / 2, player2.color);
+        const player1Score = showColorProportion(player1);
+        const player2Score = showColorProportion(player2);
+        if (player1Score > player2Score) {
+            drawText('Player 1 Wins!', canvas.width / 2 - 70, canvas.height / 2, 'white');
+        } else if (player2Score > player1Score) {
+            drawText('Player 2 Wins!', canvas.width / 2 - 70, canvas.height / 2, 'white');
         } else {
             drawText('It\'s a Tie!', canvas.width / 2 - 50, canvas.height / 2, 'white');
         }
-        drawText(`Player 1 Score: ${rounded1}%`, 20, 60, player1.color);
-        drawText(`Player 2 Score: ${rounded2}%`, 20, 90, player2.color);
+        drawText(`Player 1 Score: ${player1Score.toFixed(1)}%`, 20, 60,'white');
+        drawText(`Player 2 Score: ${player2Score.toFixed(1)}%`, 20, 90, 'white');
 
     }
 };
