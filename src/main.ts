@@ -66,6 +66,8 @@ const createGrid = () => {
     }
 };
 
+const trailThickness = 40;
+
 const drawGrid = () => {
     for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
@@ -75,7 +77,7 @@ const drawGrid = () => {
 
             if (cell !== null) {
                 ctx.fillStyle = cell;
-                ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                ctx.fillRect(x * tileSize, y * tileSize, trailThickness, trailThickness);
             }
 
             ctx.strokeStyle = 'gray';
