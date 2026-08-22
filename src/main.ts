@@ -22,31 +22,26 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
 
 const tileSize = 20;
 
-const grid: (number | null)[][] = [];
+const grid: (string | null)[][] = [];
 
-for (let y = 0; y < canvas.height / tileSize; y++) {
-    const row: (number | null)[] = [];
-    for (let x = 0; x < canvas.width / tileSize; x++) {
-        row.push(0);
+for (let y = 0; y < Math.ceil(canvas.height / tileSize); y++) {
+    const row: (string | null)[] = [];
+    for (let x = 0; x < Math.ceil(canvas.width / tileSize); x++) {
+        row.push(null);
     }
     grid.push(row);
 }
 
 function drawGrid() {
-    for (let y = 0; y < canvas.height / tileSize; y++) {
+    for (let y = 0; y < Math.ceil(canvas.height / tileSize); y++) {
         const row = grid[y];
         if (!row) continue;
 
-        for (let x = 0; x < canvas.width / tileSize; x++) {
+        for (let x = 0; x < Math.ceil(canvas.width / tileSize); x++) {
             const cell = row[x];
 
-            if (cell === 1) {
-                ctx.fillStyle = 'red';
-                ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-            }
-
-            if (cell === 2) {
-                ctx.fillStyle = 'green';
+            if (cell !== null) {
+                ctx.fillStyle = cell;
                 ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
             }
 
@@ -60,9 +55,9 @@ let animationId: number | null = null;
 
 const drawPlayers = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
   player1.draw();
   player2.draw();
-  drawGrid();
 };
 
 const keys = new Set<string>();
@@ -117,17 +112,24 @@ const stopAnimation = () => {
   }
 };
 
-const player1 = new (Player as any)('Player 1', 100, 100, 'red');
-player1.draw();
-const player2 = new (Player as any)('Player 2', 200, 200, 'green');
-player2.draw();
+const player1 = new (Player as any)('Player 1', 100, 100, 'blue');
+const player2 = new (Player as any)('Player 2', 200, 200, 'yellow');
 
+const addTrail = (player: { x: number; y: number; size: number; color: string }) => {
+    const gridX = Math.floor((player.x + player.size / 2) / tileSize);
+    const gridY = Math.floor((player.y + player.size / 2) / tileSize);
+    
+    const row = grid[gridY];
+    if (!row) return;
 
+    if (row[gridX] === null || row[gridX] !== player.color) {
+      row[gridX] = player.color;
+    }
+};
 
 const gameLoop = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    player1.draw();
-    player2.draw();
+    drawPlayers();
     drawGrid();
     
     if (keys.has('d')) player1.x += speed;
@@ -139,26 +141,12 @@ const gameLoop = () => {
     if (keys.has('ArrowLeft')) player2.x -= speed;
     if (keys.has('ArrowUp')) player2.y -= speed;
     if (keys.has('ArrowDown')) player2.y += speed;
+
+    addTrail(player1);
+    addTrail(player2);
     drawPlayers();
     requestAnimationFrame(gameLoop);
     
 }
 
 gameLoop();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
