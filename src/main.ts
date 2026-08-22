@@ -10,7 +10,7 @@ if (!ctx) {
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-type Screen = 'main' | 'settings' | 'game';
+type Screen = 'main' | 'game';
 
 type Player = {
     name: string;
@@ -348,6 +348,9 @@ const startGame = () => {
     currentScreen = 'game';
     menu.style.display = 'none';
 
+    player1.color = (document.getElementById('player1Color') as HTMLSelectElement).value;
+    player2.color = (document.getElementById('player2Color') as HTMLSelectElement).value;
+
     keys.clear();
 
     if (!gameIsRunning) {
@@ -365,36 +368,31 @@ const showMainMenu = () => {
 
     menu.innerHTML = `
         <h1>Spla2n</h1>
+
+        <label>
+            Player 1 Color:
+            <select id="player1Color">
+                <option value="blue" ${player1.color === 'blue' ? 'selected' : ''}>Blue</option>
+                <option value="red" ${player1.color === 'red' ? 'selected' : ''}>Red</option>
+                <option value="green" ${player1.color === 'green' ? 'selected' : ''}>Green</option>
+                <option value="purple" ${player1.color === 'purple' ? 'selected' : ''}>Purple</option>
+            </select>
+        </label>
+
+        <label>
+            Player 2 Color:
+            <select id="player2Color">
+                <option value="yellow" ${player2.color === 'yellow' ? 'selected' : ''}>Yellow</option>
+                <option value="orange" ${player2.color === 'orange' ? 'selected' : ''}>Orange</option>
+                <option value="white" ${player2.color === 'white' ? 'selected' : ''}>White</option>
+                <option value="magenta" ${player2.color === 'magenta' ? 'selected' : ''}>Magenta</option>
+            </select>
+        </label>
+
         <button id="playButton">Play</button>
-        <button id="settingsButton">Settings</button>
     `;
 
     document.getElementById('playButton')?.addEventListener('click', startGame);
-    document.getElementById('settingsButton')?.addEventListener('click', showSettingsMenu);
-};
-
-const showSettingsMenu = () => {
-    currentScreen = 'settings';
-    menu.style.display = 'flex';
-
-    menu.innerHTML = `
-        <h1>Settings</h1>
-
-        <label class="setting-row">
-            <input type="checkbox" id="dummySetting" />
-            Example setting
-        </label>
-
-        <p>This setting is an example.</p>
-
-        <button id="backButton">Back</button>
-    `;
-
-    document.getElementById('dummySetting')?.addEventListener('change', () => {
-        console.log('Dummy setting changed. It does nothing.');
-    });
-
-    document.getElementById('backButton')?.addEventListener('click', showMainMenu);
 };
 
 document.addEventListener('keydown', (event) => {
