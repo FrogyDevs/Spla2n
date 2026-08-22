@@ -16,6 +16,8 @@ type Player = {
     name: string;
     x: number;
     y: number;
+    startX: number;
+    startY: number;
     color: string;
     size: number;
 };
@@ -35,6 +37,8 @@ const player1: Player = {
     name: 'Player 1',
     x: 100,
     y: 100,
+    startX: 100,
+    startY: 100,
     color: 'blue',
     size: 40,
 };
@@ -43,6 +47,8 @@ const player2: Player = {
     name: 'Player 2',
     x: 200,
     y: 200,
+    startX: 200,
+    startY: 200,
     color: 'yellow',
     size: 40,
 };
@@ -64,6 +70,19 @@ const createGrid = () => {
 
         grid.push(row);
     }
+};
+
+const resetGame = () => {
+    createGrid();
+
+    player1.x = player1.startX;
+    player1.y = player1.startY;
+
+    player2.x = player2.startX;
+    player2.y = player2.startY;
+
+    keys.clear();
+    drawGame();
 };
 
 const drawGrid = () => {
@@ -155,6 +174,8 @@ const startGame = () => {
     currentScreen = 'game';
     menu.style.display = 'none';
 
+    keys.clear();
+
     if (!gameIsRunning) {
         gameIsRunning = true;
         gameLoop();
@@ -165,6 +186,7 @@ const showMainMenu = () => {
     currentScreen = 'main';
     menu.style.display = 'flex';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    keys.clear();
 
     menu.innerHTML = `
         <h1>Spla2n</h1>
@@ -201,6 +223,16 @@ const showSettingsMenu = () => {
 };
 
 document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && currentScreen === 'game') {
+        showMainMenu();
+        return;
+    }
+
+    if ((event.key === 'r' || event.key === 'R') && currentScreen === 'game') {
+        resetGame();
+        return;
+    }
+
     keys.add(event.key);
 });
 
