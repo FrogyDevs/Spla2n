@@ -571,11 +571,16 @@ const showInfoMenu = () => {
 
     menu.innerHTML = `
         <h1>Info</h1>
-
+        
+        <h2>Spielziel:</h2>
+        <p>Versuche in einer Minute so viel Fläche wie möglich einzufärben. Doch Achtung! Dein Gegner kann deine eingefärbte Fläche wieder übermalen!</p>
+        <p>Alle 10 Sekunden spawnt ein PowerUp. Wenn dies berührt wird, wird ein grosser Teil der Fläche eingefärbt. <br> Es kann nur ein PowerUp auf dem Spielfeld sein.</p>
+        <p>Am Ende dieser Minute gewinnt diejenige Person mit der meisten eingefärbten Fläche.</p>
+        <br>
         <p>Player 1: WASD</p>
         <p>Player 2: Arrow Keys</p>
         <p>R: Reset game</p>
-
+        
         <button id="backButton">Back</button>
     `;
 

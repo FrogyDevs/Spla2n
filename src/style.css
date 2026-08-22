@@ -53,4 +53,5 @@ canvas {
 #menu p {
   margin: 0 0 16px;
   color: lightgray;
+  text-align: center;
 }
