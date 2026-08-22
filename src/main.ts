@@ -65,6 +65,18 @@ const drawPlayers = () => {
   drawGrid();
 };
 
+const keys = new Set<string>();
+const speed = 5;
+
+document.addEventListener('keydown', (event) => {
+    keys.add(event.key);
+});
+
+document.addEventListener('keyup', (event) => {
+    keys.delete(event.key);
+});
+
+
 const moveRight = (player: { x: number; draw: () => void }) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   player.x += 5;
@@ -118,49 +130,17 @@ const gameLoop = () => {
     player2.draw();
     drawGrid();
     
-    document.addEventListener("keydown", (event) => {
-    const keyName = event.key;
+    if (keys.has('d')) player1.x += speed;
+    if (keys.has('a')) player1.x -= speed;
+    if (keys.has('w')) player1.y -= speed;
+    if (keys.has('s')) player1.y += speed;
 
-    if (keyName === "d") {
-        moveRight(player1);
-        stopAnimation();
-    }
-    if (keyName === "a") {
-        moveLeft(player1);
-        stopAnimation();
-    }
-    if (keyName === "w") {
-        moveUp(player1);
-        stopAnimation();
-    }
-    if (keyName === "s") {
-        moveDown(player1);
-        stopAnimation();
-    }
-    });
-
-    document.addEventListener("keydown", (event) => {
-    const keyName = event.key;
-
-    if (keyName === "ArrowRight") {
-        moveRight(player2);
-        stopAnimation();
-    }
-    if (keyName === "ArrowLeft") {
-        moveLeft(player2);
-        stopAnimation();
-    }
-    if (keyName === "ArrowUp") {
-        moveUp(player2);
-        stopAnimation();
-    }
-    if (keyName === "ArrowDown") {
-        moveDown(player2);
-        stopAnimation();
-    }
-    });
-    player1.draw();
-    player2.draw();
+    if (keys.has('ArrowRight')) player2.x += speed;
+    if (keys.has('ArrowLeft')) player2.x -= speed;
+    if (keys.has('ArrowUp')) player2.y -= speed;
+    if (keys.has('ArrowDown')) player2.y += speed;
+    drawPlayers();
+    requestAnimationFrame(gameLoop);
     
 }
 
