@@ -219,8 +219,8 @@ const drawTimer = () => {
 const addTrail = (player: Player) => {
     const startX = Math.floor(player.x / tileSize);
     const startY = Math.floor(player.y / tileSize);
-    const endX = Math.floor((player.x + player.size) / tileSize);
-    const endY = Math.floor((player.y + player.size) / tileSize);
+    const endX = Math.floor((player.x + player.size - 1) / tileSize);
+    const endY = Math.floor((player.y + player.size - 1) / tileSize);
 
     for (let y = startY; y <= endY; y++) {
         for (let x = startX; x <= endX; x++) {
@@ -322,10 +322,22 @@ const spawnPowerUp = () => {
         size: 25,
     };
 
+    const maxX = Math.max(0, canvas.width - newPowerUp.size);
+    const maxY = Math.max(0, canvas.height - newPowerUp.size);
+
+    let attempts = 0;
+    const maxAttempts = 100;
+
     do {
-        newPowerUp.x = Math.floor(Math.random() * (canvas.width - newPowerUp.size));
-        newPowerUp.y = Math.floor(Math.random() * (canvas.height - newPowerUp.size));
-    } while (isPowerUpCollidingWithWall(newPowerUp));
+        newPowerUp.x = Math.floor(Math.random() * (maxX + 1));
+        newPowerUp.y = Math.floor(Math.random() * (maxY + 1));
+        attempts++;
+    } while (isPowerUpCollidingWithWall(newPowerUp) && attempts < maxAttempts);
+
+    if (attempts >= maxAttempts && isPowerUpCollidingWithWall(newPowerUp)) {
+        powerUp = null;
+        return;
+    }
 
     powerUp = newPowerUp;
 };
@@ -504,10 +516,7 @@ const startGame = () => {
     if (!gameIsRunning) {
         gameIsRunning = true;
         lastFrameTime = performance.now();
-
-        if (lastPowerUpSpawnTime === 0) {
-            lastPowerUpSpawnTime = performance.now();
-        }
+        lastPowerUpSpawnTime = performance.now();
 
         requestAnimationFrame(gameLoop);
     }
