@@ -235,7 +235,7 @@ const addTrail = (player: Player) => {
 const createSplash = (player: Player) => {
     const centerX = Math.floor((player.x + player.size / 2) / tileSize);
     const centerY = Math.floor((player.y + player.size / 2) / tileSize);
-    const splashRadius = 4;
+    const splashRadius = 6;
 
     for (let y = centerY - splashRadius; y <= centerY + splashRadius; y++) {
         const row = grid[y];
