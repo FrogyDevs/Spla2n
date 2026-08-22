@@ -5,10 +5,10 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite build && serve -s dist"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/FrogyDevs/Spla2n#readme",
   "devDependencies": {
+    "serve": "^14.2.6",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   }
