@@ -160,7 +160,7 @@ const updatePlayers = () => {
     addTrail(player2);
 };
 
-const gameDuration = 10;
+const gameDuration = 60;
 let gameStartTime = 0;
 
 const drawTimer = (currentTime: number) => {
