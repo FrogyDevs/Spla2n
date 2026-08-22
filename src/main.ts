@@ -270,6 +270,24 @@ const updateTimer = (currentTime: number) => {
     lastFrameTime = currentTime;
 };
 
+const showColorPropotion = (player: Player) => {
+    const rows = grid.length;
+    const columns = grid[0].length;
+    const gridSize = rows * columns;
+    return grid.flat().reduce((acc, color) => {
+        if (color === player.color) {
+            return acc + 1;
+        }
+        return (acc / gridSize) * 100;
+    }, 0);
+}
+
+const drawText = (text: string, x: number, y: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.font = '24px Arial';
+    ctx.fillText(text, x, y);
+}
+
 const gameLoop = (currentTime: number) => {
     if (currentScreen !== 'game') {
         gameIsRunning = false;
@@ -281,11 +299,26 @@ const gameLoop = (currentTime: number) => {
     drawGame();
 
     const timeLeft = drawTimer();
+    
 
     if (timeLeft > 0) {
         requestAnimationFrame(gameLoop);
     } else {
         gameIsRunning = false;
+        const player1Score = showColorPropotion(player1);
+        const player2Score = showColorPropotion(player2);
+        const rounded1 = Number(player1Score.toFixed(2));
+        const rounded2 = Number(player2Score.toFixed(2));
+        if (rounded1 > rounded2) {
+            drawText('Player 1 Wins!', canvas.width / 2 - 70, canvas.height / 2, player1.color);
+        } else if (rounded2 > rounded1) {
+            drawText('Player 2 Wins!', canvas.width / 2 - 70, canvas.height / 2, player2.color);
+        } else {
+            drawText('It\'s a Tie!', canvas.width / 2 - 50, canvas.height / 2, 'white');
+        }
+        drawText(`Player 1 Score: ${rounded1}%`, 20, 60, player1.color);
+        drawText(`Player 2 Score: ${rounded2}%`, 20, 90, player2.color);
+
     }
 };
 
