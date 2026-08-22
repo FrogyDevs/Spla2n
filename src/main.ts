@@ -20,25 +20,25 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
   };
 }
 
-const tileSize = 40;
+const tileSize = 20;
 const gridSize = 20;
 
 const grid: (number | null)[][] = [];
 
-for (let y = 0; y < gridSize; y++) {
+for (let y = 0; y < canvas.height / tileSize; y++) {
     const row: (number | null)[] = [];
-    for (let x = 0; x < gridSize; x++) {
+    for (let x = 0; x < canvas.width / tileSize; x++) {
         row.push(0);
     }
     grid.push(row);
 }
 
 function drawGrid() {
-    for (let y = 0; y < gridSize; y++) {
+    for (let y = 0; y < canvas.height / tileSize; y++) {
         const row = grid[y];
         if (!row) continue;
 
-        for (let x = 0; x < gridSize; x++) {
+        for (let x = 0; x < canvas.width / tileSize; x++) {
             const cell = row[x];
 
             if (cell === 1) {
