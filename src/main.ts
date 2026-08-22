@@ -21,7 +21,6 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
 }
 
 const tileSize = 20;
-const gridSize = 80;
 
 const grid: (number | null)[][] = [];
 
