@@ -33,7 +33,7 @@ let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
 const tileSize = 20;
-const trailThickness = 20;
+const trailThickness = 50;
 const speed = 5;
 const keys = new Set<string>();
 
@@ -182,11 +182,6 @@ const drawTimer = () => {
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.fillText(`Time: ${Math.ceil(remainingTime)}s`, 20, 30);
-
-    if (remainingTime === 0) {
-        ctx.fillText('Game Over!', canvas.width / 2 - 50, canvas.height / 2);
-    }
-
     return remainingTime;
 };
 
@@ -270,6 +265,19 @@ const updateTimer = (currentTime: number) => {
     lastFrameTime = currentTime;
 };
 
+const showColorProportion = (player: Player) => {
+    const totalCells = grid.length * (grid[0]?.length || 0);
+    if (totalCells === 0) return 0;
+    const playerCells = grid.flat().filter((cell) => cell === player.color).length;
+    return (playerCells / totalCells) * 100;
+}
+
+const drawText = (text: string, x: number, y: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.font = '24px Arial';
+    ctx.fillText(text, x, y);
+}
+
 const gameLoop = (currentTime: number) => {
     if (currentScreen !== 'game') {
         gameIsRunning = false;
@@ -281,11 +289,24 @@ const gameLoop = (currentTime: number) => {
     drawGame();
 
     const timeLeft = drawTimer();
+    
 
     if (timeLeft > 0) {
         requestAnimationFrame(gameLoop);
     } else {
         gameIsRunning = false;
+        const player1Score = showColorProportion(player1);
+        const player2Score = showColorProportion(player2);
+        if (player1Score > player2Score) {
+            drawText('Player 1 Wins!', canvas.width / 2 - 70, canvas.height / 2, 'white');
+        } else if (player2Score > player1Score) {
+            drawText('Player 2 Wins!', canvas.width / 2 - 70, canvas.height / 2, 'white');
+        } else {
+            drawText('It\'s a Tie!', canvas.width / 2 - 50, canvas.height / 2, 'white');
+        }
+        drawText(`Player 1 Score: ${player1Score.toFixed(1)}%`, 20, 60,'white');
+        drawText(`Player 2 Score: ${player2Score.toFixed(1)}%`, 20, 90, 'white');
+
     }
 };
 
@@ -402,7 +423,7 @@ document.addEventListener('keydown', (event) => {
         return;
     }
 
-    if ((event.key === 'e' || event.key === 'E') && currentScreen === 'game') {
+    if ((event.key === 'r' || event.key === 'R') && currentScreen === 'game') {
         resetGame();
         return;
     }
