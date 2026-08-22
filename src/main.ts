@@ -16,6 +16,8 @@ type Player = {
     name: string;
     x: number;
     y: number;
+    startX: number;
+    startY: number;
     color: string;
     size: number;
 };
@@ -35,6 +37,8 @@ const player1: Player = {
     name: 'Player 1',
     x: 100,
     y: 100,
+    startX: 100,
+    startY: 100,
     color: 'blue',
     size: 40,
 };
@@ -43,6 +47,8 @@ const player2: Player = {
     name: 'Player 2',
     x: 200,
     y: 200,
+    startX: 200,
+    startY: 200,
     color: 'yellow',
     size: 40,
 };
