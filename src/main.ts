@@ -48,7 +48,7 @@ let remainingTime = gameDuration;
 let lastFrameTime = 0;
 
 let powerUp: PowerUp | null = null;
-let lastPowerUpSpawnTime = 0;
+let lastPowerUpSpawnGameTime = 0;
 const powerUpSpawnDelay = 10;
 
 const menu = document.createElement('div');
@@ -149,10 +149,12 @@ const drawGrid = () => {
     for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
 
+        if (!row) continue;
+
         for (let x = 0; x < row.length; x++) {
             const cell = row[x];
 
-            if (cell !== null) {
+            if (cell !== null && cell !== undefined) {
                 ctx.fillStyle = cell;
                 ctx.fillRect(x * tileSize, y * tileSize, trailThickness, trailThickness);
             }
@@ -342,14 +344,15 @@ const spawnPowerUp = () => {
     powerUp = newPowerUp;
 };
 
-const updatePowerUp = (currentTime: number) => {
+const updatePowerUp = () => {
     if (powerUp) return;
 
-    const secondsSinceLastSpawn = (currentTime - lastPowerUpSpawnTime) / 1000;
+    const elapsedGameTime = gameDuration - remainingTime;
+    const secondsSinceLastSpawn = elapsedGameTime - lastPowerUpSpawnGameTime;
 
     if (secondsSinceLastSpawn >= powerUpSpawnDelay) {
         spawnPowerUp();
-        lastPowerUpSpawnTime = currentTime;
+        lastPowerUpSpawnGameTime = elapsedGameTime;
     }
 };
 
@@ -442,7 +445,7 @@ const gameLoop = (currentTime: number) => {
     }
 
     updateTimer(currentTime);
-    updatePowerUp(currentTime);
+    updatePowerUp();
     updatePlayers();
     drawGame();
 
@@ -479,7 +482,7 @@ const resetGame = () => {
 
     remainingTime = gameDuration;
     lastFrameTime = performance.now();
-    lastPowerUpSpawnTime = performance.now();
+    lastPowerUpSpawnGameTime = 0;
     powerUp = null;
 
     keys.clear();
@@ -516,7 +519,7 @@ const startGame = () => {
     if (!gameIsRunning) {
         gameIsRunning = true;
         lastFrameTime = performance.now();
-        lastPowerUpSpawnTime = performance.now();
+        lastPowerUpSpawnGameTime = 0;
 
         requestAnimationFrame(gameLoop);
     }
