@@ -33,7 +33,7 @@ let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
 const tileSize = 20;
-const trailThickness = 50;
+const trailThickness = 60;
 const speed = 5;
 const keys = new Set<string>();
 
