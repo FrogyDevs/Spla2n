@@ -12,7 +12,7 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
     this.x = x;
     this.y = y;
     this.color = color;
-    this.size = 50;
+    this.size = 40;
 
     this.draw = () => {
     ctx.fillStyle = this.color;
@@ -20,8 +20,8 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
   };
 }
 
-const tileSize = 40;
-const gridSize = 20;
+const tileSize = 20;
+const gridSize = 80;
 
 const grid: (number | null)[][] = [];
 
