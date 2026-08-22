@@ -2,9 +2,55 @@ body {
   margin: 0;
   overflow: hidden;
   background: black;
+  font-family: Arial, sans-serif;
 }
 
 canvas {
   display: block;
   margin: 0 auto;
+}
+
+#menu {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background: black;
+  color: white;
+  z-index: 10;
+}
+
+#menu h1 {
+  margin: 0 0 16px;
+  font-size: 48px;
+}
+
+#menu button {
+  width: 180px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  color: black;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#menu button:hover {
+  background: lightgray;
+}
+
+.setting-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 20px;
+}
+
+#menu p {
+  margin: 0 0 16px;
+  color: lightgray;
 }

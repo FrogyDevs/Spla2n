@@ -1,43 +1,76 @@
 import './style.css';
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d')!;
+const ctx = canvas.getContext('2d');
+
+if (!ctx) {
+    throw new Error('Could not get canvas context');
+}
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-console.log('main.ts loaded');
 
-function Player(this: { name: string; x: number; y: number; color: string; size: number; draw: () => void }, name: string, x: number, y: number, color: string) {
-    this.name = name;
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.size = 40;
+type Screen = 'main' | 'settings' | 'game';
 
-    this.draw = () => {
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.size, this.size);
-  };
-}
+type Player = {
+    name: string;
+    x: number;
+    y: number;
+    color: string;
+    size: number;
+};
+
+let currentScreen: Screen = 'main';
+let gameIsRunning = false;
 
 const tileSize = 20;
+const speed = 5;
+const keys = new Set<string>();
 
-const grid: (string | null)[][] = [];
+const menu = document.createElement('div');
+menu.id = 'menu';
+document.body.appendChild(menu);
 
-for (let y = 0; y < Math.ceil(canvas.height / tileSize); y++) {
-    const row: (string | null)[] = [];
-    for (let x = 0; x < Math.ceil(canvas.width / tileSize); x++) {
-        row.push(null);
+const player1: Player = {
+    name: 'Player 1',
+    x: 100,
+    y: 100,
+    color: 'blue',
+    size: 40,
+};
+
+const player2: Player = {
+    name: 'Player 2',
+    x: 200,
+    y: 200,
+    color: 'yellow',
+    size: 40,
+};
+
+let grid: (string | null)[][] = [];
+
+const createGrid = () => {
+    grid = [];
+
+    const rows = Math.ceil(canvas.height / tileSize);
+    const columns = Math.ceil(canvas.width / tileSize);
+
+    for (let y = 0; y < rows; y++) {
+        const row: (string | null)[] = [];
+
+        for (let x = 0; x < columns; x++) {
+            row.push(null);
+        }
+
+        grid.push(row);
     }
-    grid.push(row);
-}
+};
 
-function drawGrid() {
-    for (let y = 0; y < Math.ceil(canvas.height / tileSize); y++) {
+const drawGrid = () => {
+    for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
-        if (!row) continue;
 
-        for (let x = 0; x < Math.ceil(canvas.width / tileSize); x++) {
+        for (let x = 0; x < row.length; x++) {
             const cell = row[x];
 
             if (cell !== null) {
@@ -49,89 +82,46 @@ function drawGrid() {
             ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
     }
-}
-
-let animationId: number | null = null;
-
-const drawPlayers = () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawGrid();
-  player1.draw();
-  player2.draw();
 };
 
-const keys = new Set<string>();
-const speed = 5;
-
-document.addEventListener('keydown', (event) => {
-    keys.add(event.key);
-});
-
-document.addEventListener('keyup', (event) => {
-    keys.delete(event.key);
-});
-
-
-const moveRight = (player: { x: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.x += 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveRight(player));
+const drawPlayer = (player: Player) => {
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.size, player.size);
 };
 
-const moveLeft = (player: { x: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.x -= 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveLeft(player));
+const drawGame = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawPlayer(player1);
+    drawPlayer(player2);
 };
 
-const moveUp = (player: { y: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.y -= 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveUp(player));
-};
-
-const moveDown = (player: { y: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.y += 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveDown(player));
-};
-
-
-const stopAnimation = () => {
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-  }
-};
-
-const player1 = new (Player as any)('Player 1', 100, 100, 'blue');
-const player2 = new (Player as any)('Player 2', 200, 200, 'yellow');
-
-const addTrail = (player: { x: number; y: number; size: number; color: string }) => {
+const addTrail = (player: Player) => {
     const gridX = Math.floor((player.x + player.size / 2) / tileSize);
     const gridY = Math.floor((player.y + player.size / 2) / tileSize);
-    
-    const row = grid[gridY];
-    if (!row) return;
 
-    if (row[gridX] === null || row[gridX] !== player.color) {
-      row[gridX] = player.color;
+    const row = grid[gridY];
+
+    if (!row) return;
+    if (gridX < 0 || gridX >= row.length) return;
+
+    row[gridX] = player.color;
+};
+
+const keepPlayerInsideCanvas = (player: Player) => {
+    if (player.x < 0) player.x = 0;
+    if (player.y < 0) player.y = 0;
+
+    if (player.x + player.size > canvas.width) {
+        player.x = canvas.width - player.size;
+    }
+
+    if (player.y + player.size > canvas.height) {
+        player.y = canvas.height - player.size;
     }
 };
 
-const gameLoop = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawPlayers();
-    drawGrid();
-    
+const updatePlayers = () => {
     if (keys.has('d')) player1.x += speed;
     if (keys.has('a')) player1.x -= speed;
     if (keys.has('w')) player1.y -= speed;
@@ -142,11 +132,92 @@ const gameLoop = () => {
     if (keys.has('ArrowUp')) player2.y -= speed;
     if (keys.has('ArrowDown')) player2.y += speed;
 
+    keepPlayerInsideCanvas(player1);
+    keepPlayerInsideCanvas(player2);
+
     addTrail(player1);
     addTrail(player2);
-    drawPlayers();
-    requestAnimationFrame(gameLoop);
-    
-}
+};
 
-gameLoop();
+const gameLoop = () => {
+    if (currentScreen !== 'game') {
+        gameIsRunning = false;
+        return;
+    }
+
+    updatePlayers();
+    drawGame();
+
+    requestAnimationFrame(gameLoop);
+};
+
+const startGame = () => {
+    currentScreen = 'game';
+    menu.style.display = 'none';
+
+    if (!gameIsRunning) {
+        gameIsRunning = true;
+        gameLoop();
+    }
+};
+
+const showMainMenu = () => {
+    currentScreen = 'main';
+    menu.style.display = 'flex';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    menu.innerHTML = `
+        <h1>Spla2n</h1>
+        <button id="playButton">Play</button>
+        <button id="settingsButton">Settings</button>
+    `;
+
+    document.getElementById('playButton')?.addEventListener('click', startGame);
+    document.getElementById('settingsButton')?.addEventListener('click', showSettingsMenu);
+};
+
+const showSettingsMenu = () => {
+    currentScreen = 'settings';
+    menu.style.display = 'flex';
+
+    menu.innerHTML = `
+        <h1>Settings</h1>
+
+        <label class="setting-row">
+            <input type="checkbox" id="dummySetting" />
+            Example setting
+        </label>
+
+        <p>This setting is just an example and does nothing.</p>
+
+        <button id="backButton">Back</button>
+    `;
+
+    document.getElementById('dummySetting')?.addEventListener('change', () => {
+        console.log('Dummy setting changed. It does nothing.');
+    });
+
+    document.getElementById('backButton')?.addEventListener('click', showMainMenu);
+};
+
+document.addEventListener('keydown', (event) => {
+    keys.add(event.key);
+});
+
+document.addEventListener('keyup', (event) => {
+    keys.delete(event.key);
+});
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    createGrid();
+
+    if (currentScreen === 'game') {
+        drawGame();
+    }
+});
+
+createGrid();
+showMainMenu();
