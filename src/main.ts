@@ -39,7 +39,7 @@ let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
 const tileSize = 20;
-const trailThickness = 60;
+const trailThickness = 40;
 const speed = 5;
 const keys = new Set<string>();
 
@@ -217,15 +217,19 @@ const drawTimer = () => {
 };
 
 const addTrail = (player: Player) => {
-    const gridX = Math.floor((player.x + player.size / 2) / tileSize);
-    const gridY = Math.floor((player.y + player.size / 2) / tileSize);
+    const startX = Math.floor(player.x / tileSize);
+    const startY = Math.floor(player.y / tileSize);
+    const endX = Math.floor((player.x + player.size) / tileSize);
+    const endY = Math.floor((player.y + player.size) / tileSize);
 
-    const row = grid[gridY];
-
-    if (!row) return;
-    if (gridX < 0 || gridX >= row.length) return;
-
-    row[gridX] = player.color;
+    for (let y = startY; y <= endY; y++) {
+        for (let x = startX; x <= endX; x++) {
+            const row = grid[y];
+            if (!row) continue;
+            if (x < 0 || x >= row.length) continue;
+            row[x] = player.color;
+        }
+    }
 };
 
 const createSplash = (player: Player) => {
