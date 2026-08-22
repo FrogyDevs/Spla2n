@@ -145,20 +145,3 @@ const gameLoop = () => {
 }
 
 gameLoop();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
