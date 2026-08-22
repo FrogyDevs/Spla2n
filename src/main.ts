@@ -72,46 +72,6 @@ document.addEventListener('keyup', (event) => {
 });
 
 
-const moveRight = (player: { x: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.x += 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveRight(player));
-};
-
-const moveLeft = (player: { x: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.x -= 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveLeft(player));
-};
-
-const moveUp = (player: { y: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.y -= 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveUp(player));
-};
-
-const moveDown = (player: { y: number; draw: () => void }) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.y += 5;
-  drawPlayers();
-
-  animationId = requestAnimationFrame(() => moveDown(player));
-};
-
-
-const stopAnimation = () => {
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-  }
-};
-
 const player1 = new (Player as any)('Player 1', 100, 100, 'blue');
 const player2 = new (Player as any)('Player 2', 200, 200, 'yellow');
 
