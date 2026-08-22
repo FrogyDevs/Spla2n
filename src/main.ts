@@ -48,7 +48,7 @@ let remainingTime = gameDuration;
 let lastFrameTime = 0;
 
 let powerUp: PowerUp | null = null;
-let lastPowerUpSpawnTime = 0;
+let lastPowerUpSpawnGameTime = 0;
 const powerUpSpawnDelay = 10;
 
 const menu = document.createElement('div');
@@ -149,10 +149,12 @@ const drawGrid = () => {
     for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
 
+        if (!row) continue;
+
         for (let x = 0; x < row.length; x++) {
             const cell = row[x];
 
-            if (cell !== null) {
+            if (cell !== null && cell !== undefined) {
                 ctx.fillStyle = cell;
                 ctx.fillRect(x * tileSize, y * tileSize, trailThickness, trailThickness);
             }
@@ -219,8 +221,8 @@ const drawTimer = () => {
 const addTrail = (player: Player) => {
     const startX = Math.floor(player.x / tileSize);
     const startY = Math.floor(player.y / tileSize);
-    const endX = Math.floor((player.x + player.size) / tileSize);
-    const endY = Math.floor((player.y + player.size) / tileSize);
+    const endX = Math.floor((player.x + player.size - 1) / tileSize);
+    const endY = Math.floor((player.y + player.size - 1) / tileSize);
 
     for (let y = startY; y <= endY; y++) {
         for (let x = startX; x <= endX; x++) {
@@ -322,22 +324,35 @@ const spawnPowerUp = () => {
         size: 25,
     };
 
+    const maxX = Math.max(0, canvas.width - newPowerUp.size);
+    const maxY = Math.max(0, canvas.height - newPowerUp.size);
+
+    let attempts = 0;
+    const maxAttempts = 100;
+
     do {
-        newPowerUp.x = Math.floor(Math.random() * (canvas.width - newPowerUp.size));
-        newPowerUp.y = Math.floor(Math.random() * (canvas.height - newPowerUp.size));
-    } while (isPowerUpCollidingWithWall(newPowerUp));
+        newPowerUp.x = Math.floor(Math.random() * (maxX + 1));
+        newPowerUp.y = Math.floor(Math.random() * (maxY + 1));
+        attempts++;
+    } while (isPowerUpCollidingWithWall(newPowerUp) && attempts < maxAttempts);
+
+    if (attempts >= maxAttempts && isPowerUpCollidingWithWall(newPowerUp)) {
+        powerUp = null;
+        return;
+    }
 
     powerUp = newPowerUp;
 };
 
-const updatePowerUp = (currentTime: number) => {
+const updatePowerUp = () => {
     if (powerUp) return;
 
-    const secondsSinceLastSpawn = (currentTime - lastPowerUpSpawnTime) / 1000;
+    const elapsedGameTime = gameDuration - remainingTime;
+    const secondsSinceLastSpawn = elapsedGameTime - lastPowerUpSpawnGameTime;
 
     if (secondsSinceLastSpawn >= powerUpSpawnDelay) {
         spawnPowerUp();
-        lastPowerUpSpawnTime = currentTime;
+        lastPowerUpSpawnGameTime = elapsedGameTime;
     }
 };
 
@@ -430,7 +445,7 @@ const gameLoop = (currentTime: number) => {
     }
 
     updateTimer(currentTime);
-    updatePowerUp(currentTime);
+    updatePowerUp();
     updatePlayers();
     drawGame();
 
@@ -467,7 +482,7 @@ const resetGame = () => {
 
     remainingTime = gameDuration;
     lastFrameTime = performance.now();
-    lastPowerUpSpawnTime = performance.now();
+    lastPowerUpSpawnGameTime = 0;
     powerUp = null;
 
     keys.clear();
@@ -504,10 +519,7 @@ const startGame = () => {
     if (!gameIsRunning) {
         gameIsRunning = true;
         lastFrameTime = performance.now();
-
-        if (lastPowerUpSpawnTime === 0) {
-            lastPowerUpSpawnTime = performance.now();
-        }
+        lastPowerUpSpawnGameTime = 0;
 
         requestAnimationFrame(gameLoop);
     }
@@ -559,11 +571,16 @@ const showInfoMenu = () => {
 
     menu.innerHTML = `
         <h1>Info</h1>
-
+        
+        <h2>Spielziel:</h2>
+        <p>Versuche in einer Minute so viel Fläche wie möglich einzufärben. Doch Achtung! Dein Gegner kann deine eingefärbte Fläche wieder übermalen!</p>
+        <p>Alle 10 Sekunden spawnt ein PowerUp. Wenn dies berührt wird, wird ein grosser Teil der Fläche eingefärbt. <br> Es kann nur ein PowerUp auf dem Spielfeld sein.</p>
+        <p>Am Ende dieser Minute gewinnt diejenige Person mit der meisten eingefärbten Fläche.</p>
+        <br>
         <p>Player 1: WASD</p>
         <p>Player 2: Arrow Keys</p>
         <p>R: Reset game</p>
-
+        
         <button id="backButton">Back</button>
     `;
 
