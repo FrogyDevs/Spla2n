@@ -29,6 +29,12 @@ type Wall = {
     height: number;
 };
 
+type PowerUp = {
+    x: number;
+    y: number;
+    size: number;
+};
+
 let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
@@ -40,6 +46,10 @@ const keys = new Set<string>();
 const gameDuration = 60;
 let remainingTime = gameDuration;
 let lastFrameTime = 0;
+
+let powerUp: PowerUp | null = null;
+let lastPowerUpSpawnTime = 0;
+const powerUpSpawnDelay = 10;
 
 const menu = document.createElement('div');
 menu.id = 'menu';
@@ -165,6 +175,26 @@ const drawWalls = () => {
     }
 };
 
+const drawPowerUp = () => {
+    if (!powerUp) return;
+
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(
+        powerUp.x + powerUp.size / 2,
+        powerUp.y + powerUp.size / 2,
+        powerUp.size / 2,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.strokeStyle = 'gold';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.lineWidth = 1;
+};
+
 const drawPlayer = (player: Player) => {
     ctx.fillStyle = player.color;
     ctx.fillRect(player.x, player.y, player.size, player.size);
@@ -174,6 +204,7 @@ const drawGame = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawWalls();
+    drawPowerUp();
     drawPlayer(player1);
     drawPlayer(player2);
 };
@@ -195,6 +226,115 @@ const addTrail = (player: Player) => {
     if (gridX < 0 || gridX >= row.length) return;
 
     row[gridX] = player.color;
+};
+
+const createSplash = (player: Player) => {
+    const centerX = Math.floor((player.x + player.size / 2) / tileSize);
+    const centerY = Math.floor((player.y + player.size / 2) / tileSize);
+    const splashRadius = 4;
+
+    for (let y = centerY - splashRadius; y <= centerY + splashRadius; y++) {
+        const row = grid[y];
+
+        if (!row) continue;
+
+        for (let x = centerX - splashRadius; x <= centerX + splashRadius; x++) {
+            if (x < 0 || x >= row.length) continue;
+
+            const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+            if (distance <= splashRadius) {
+                row[x] = player.color;
+            }
+        }
+    }
+};
+
+const isRectColliding = (
+    x1: number,
+    y1: number,
+    width1: number,
+    height1: number,
+    x2: number,
+    y2: number,
+    width2: number,
+    height2: number
+) => {
+    return (
+        x1 < x2 + width2 &&
+        x1 + width1 > x2 &&
+        y1 < y2 + height2 &&
+        y1 + height1 > y2
+    );
+};
+
+const isPowerUpTouchingPlayer = (player: Player) => {
+    if (!powerUp) return false;
+
+    return isRectColliding(
+        player.x,
+        player.y,
+        player.size,
+        player.size,
+        powerUp.x,
+        powerUp.y,
+        powerUp.size,
+        powerUp.size
+    );
+};
+
+const handlePowerUpPickup = () => {
+    if (isPowerUpTouchingPlayer(player1)) {
+        createSplash(player1);
+        powerUp = null;
+        return;
+    }
+
+    if (isPowerUpTouchingPlayer(player2)) {
+        createSplash(player2);
+        powerUp = null;
+    }
+};
+
+const isPowerUpCollidingWithWall = (newPowerUp: PowerUp) => {
+    return walls.some((wall) =>
+        isRectColliding(
+            newPowerUp.x,
+            newPowerUp.y,
+            newPowerUp.size,
+            newPowerUp.size,
+            wall.x,
+            wall.y,
+            wall.width,
+            wall.height
+        )
+    );
+};
+
+const spawnPowerUp = () => {
+    const newPowerUp: PowerUp = {
+        x: 0,
+        y: 0,
+        size: 25,
+    };
+
+    do {
+        newPowerUp.x = Math.floor(Math.random() * (canvas.width - newPowerUp.size));
+        newPowerUp.y = Math.floor(Math.random() * (canvas.height - newPowerUp.size));
+    } while (isPowerUpCollidingWithWall(newPowerUp));
+
+    powerUp = newPowerUp;
+};
+
+const updatePowerUp = (currentTime: number) => {
+    if (powerUp) return;
+
+    const secondsSinceLastSpawn = (currentTime - lastPowerUpSpawnTime) / 1000;
+
+    if (secondsSinceLastSpawn >= powerUpSpawnDelay) {
+        spawnPowerUp();
+        lastPowerUpSpawnTime = currentTime;
+    }
 };
 
 const keepPlayerInsideCanvas = (player: Player) => {
@@ -257,6 +397,7 @@ const updatePlayers = () => {
 
     addTrail(player1);
     addTrail(player2);
+    handlePowerUpPickup();
 };
 
 const updateTimer = (currentTime: number) => {
@@ -285,11 +426,12 @@ const gameLoop = (currentTime: number) => {
     }
 
     updateTimer(currentTime);
+    updatePowerUp(currentTime);
     updatePlayers();
     drawGame();
 
     const timeLeft = drawTimer();
-    
+
 
     if (timeLeft > 0) {
         requestAnimationFrame(gameLoop);
@@ -321,6 +463,8 @@ const resetGame = () => {
 
     remainingTime = gameDuration;
     lastFrameTime = performance.now();
+    lastPowerUpSpawnTime = performance.now();
+    powerUp = null;
 
     keys.clear();
     drawGame();
@@ -356,6 +500,11 @@ const startGame = () => {
     if (!gameIsRunning) {
         gameIsRunning = true;
         lastFrameTime = performance.now();
+
+        if (lastPowerUpSpawnTime === 0) {
+            lastPowerUpSpawnTime = performance.now();
+        }
+
         requestAnimationFrame(gameLoop);
     }
 };
@@ -409,7 +558,7 @@ const showInfoMenu = () => {
 
         <p>Player 1: WASD</p>
         <p>Player 2: Arrow Keys</p>
-        <p>E: Reset game</p>
+        <p>R: Reset game</p>
 
         <button id="backButton">Back</button>
     `;
