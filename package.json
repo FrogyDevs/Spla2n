@@ -1,0 +1,27 @@
+{
+  "name": "spla2n",
+  "version": "1.0.0",
+  "description": "This is a Webbrowser game for a school internal hackathon.",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FrogyDevs/Spla2n.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FrogyDevs/Spla2n/issues"
+  },
+  "homepage": "https://github.com/FrogyDevs/Spla2n#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}
