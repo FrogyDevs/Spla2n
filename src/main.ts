@@ -22,10 +22,18 @@ type Player = {
     size: number;
 };
 
+type Wall = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
 let currentScreen: Screen = 'main';
 let gameIsRunning = false;
 
 const tileSize = 20;
+const trailThickness = 20;
 const speed = 5;
 const keys = new Set<string>();
 
@@ -53,6 +61,57 @@ const player2: Player = {
     size: 40,
 };
 
+const walls: Wall[] = [
+    {
+        x: 360,
+        y: 140,
+        width: 240,
+        height: 40,
+    },
+    {
+        x: 360,
+        y: 180,
+        width: 40,
+        height: 180,
+    },
+    {
+        x: 700,
+        y: 300,
+        width: 260,
+        height: 40,
+    },
+    {
+        x: 920,
+        y: 340,
+        width: 40,
+        height: 200,
+    },
+    {
+        x: 180,
+        y: 480,
+        width: 300,
+        height: 40,
+    },
+    {
+        x: 1200,
+        y: 200,
+        width: 40,
+        height: 300,
+    },
+    {
+        x: 700,
+        y: 650,
+        width: 300,
+        height: 40,
+    },
+    {
+        x: 700,
+        y: 650,
+        width: 40,
+        height: 200,
+    },
+];
+
 let grid: (string | null)[][] = [];
 
 const createGrid = () => {
@@ -71,8 +130,6 @@ const createGrid = () => {
         grid.push(row);
     }
 };
-
-const trailThickness = 20;
 
 const resetGame = () => {
     createGrid();
@@ -105,6 +162,18 @@ const drawGrid = () => {
     }
 };
 
+const drawWalls = () => {
+    for (const wall of walls) {
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+
+        ctx.strokeStyle = '#222222';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
+        ctx.lineWidth = 1;
+    }
+};
+
 const drawPlayer = (player: Player) => {
     ctx.fillStyle = player.color;
     ctx.fillRect(player.x, player.y, player.size, player.size);
@@ -113,6 +182,7 @@ const drawPlayer = (player: Player) => {
 const drawGame = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
+    drawWalls();
     drawPlayer(player1);
     drawPlayer(player2);
 };
@@ -142,19 +212,50 @@ const keepPlayerInsideCanvas = (player: Player) => {
     }
 };
 
+const isCollidingWithWall = (
+    nextX: number,
+    nextY: number,
+    player: Player,
+    wall: Wall
+) => {
+    return (
+        nextX < wall.x + wall.width &&
+        nextX + player.size > wall.x &&
+        nextY < wall.y + wall.height &&
+        nextY + player.size > wall.y
+    );
+};
+
+const wouldCollideWithAnyWall = (
+    player: Player,
+    nextX: number,
+    nextY: number
+) => {
+    return walls.some((wall) => isCollidingWithWall(nextX, nextY, player, wall));
+};
+
+const tryMovePlayer = (player: Player, moveX: number, moveY: number) => {
+    const nextX = player.x + moveX;
+    const nextY = player.y + moveY;
+
+    if (!wouldCollideWithAnyWall(player, nextX, nextY)) {
+        player.x = nextX;
+        player.y = nextY;
+    }
+
+    keepPlayerInsideCanvas(player);
+};
+
 const updatePlayers = () => {
-    if (keys.has('d')) player1.x += speed;
-    if (keys.has('a')) player1.x -= speed;
-    if (keys.has('w')) player1.y -= speed;
-    if (keys.has('s')) player1.y += speed;
+    if (keys.has('d')) tryMovePlayer(player1, speed, 0);
+    if (keys.has('a')) tryMovePlayer(player1, -speed, 0);
+    if (keys.has('w')) tryMovePlayer(player1, 0, -speed);
+    if (keys.has('s')) tryMovePlayer(player1, 0, speed);
 
-    if (keys.has('ArrowRight')) player2.x += speed;
-    if (keys.has('ArrowLeft')) player2.x -= speed;
-    if (keys.has('ArrowUp')) player2.y -= speed;
-    if (keys.has('ArrowDown')) player2.y += speed;
-
-    keepPlayerInsideCanvas(player1);
-    keepPlayerInsideCanvas(player2);
+    if (keys.has('ArrowRight')) tryMovePlayer(player2, speed, 0);
+    if (keys.has('ArrowLeft')) tryMovePlayer(player2, -speed, 0);
+    if (keys.has('ArrowUp')) tryMovePlayer(player2, 0, -speed);
+    if (keys.has('ArrowDown')) tryMovePlayer(player2, 0, speed);
 
     addTrail(player1);
     addTrail(player2);
@@ -212,7 +313,7 @@ const showSettingsMenu = () => {
             Example setting
         </label>
 
-        <p>This setting is just an example and does nothing.</p>
+        <p>This setting is an example.</p>
 
         <button id="backButton">Back</button>
     `;
