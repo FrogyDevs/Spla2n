@@ -57,20 +57,20 @@ document.body.appendChild(menu);
 
 const player1: Player = {
     name: 'Player 1',
-    x: 100,
-    y: 100,
-    startX: 100,
-    startY: 100,
+    x: tileSize,
+    y: (canvas.height - 40) / 2,
+    startX: tileSize,
+    startY: (canvas.height - 40) / 2,
     color: 'blue',
     size: 40,
 };
 
 const player2: Player = {
     name: 'Player 2',
-    x: 200,
-    y: 200,
-    startX: 200,
-    startY: 200,
+    x: canvas.width - tileSize - 40,
+    y: (canvas.height - 40) / 2,
+    startX: canvas.width - tileSize - 40,
+    startY: (canvas.height - 40) / 2,
     color: 'yellow',
     size: 40,
 };
