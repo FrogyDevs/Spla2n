@@ -12,7 +12,7 @@ function Player(this: { name: string; x: number; y: number; color: string; size:
     this.x = x;
     this.y = y;
     this.color = color;
-    this.size = 50;
+    this.size = 40;
 
     this.draw = () => {
     ctx.fillStyle = this.color;
