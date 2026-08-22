@@ -66,7 +66,7 @@ const createGrid = () => {
     }
 };
 
-const trailThickness = 40;
+const trailThickness = 20;
 
 const resetGame = () => {
     createGrid();
