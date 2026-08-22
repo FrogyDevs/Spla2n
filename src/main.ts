@@ -37,6 +37,10 @@ const trailThickness = 20;
 const speed = 5;
 const keys = new Set<string>();
 
+const gameDuration = 60;
+let remainingTime = gameDuration;
+let lastFrameTime = 0;
+
 const menu = document.createElement('div');
 menu.id = 'menu';
 document.body.appendChild(menu);
@@ -131,19 +135,6 @@ const createGrid = () => {
     }
 };
 
-const resetGame = () => {
-    createGrid();
-
-    player1.x = player1.startX;
-    player1.y = player1.startY;
-
-    player2.x = player2.startX;
-    player2.y = player2.startY;
-
-    keys.clear();
-    drawGame();
-};
-
 const drawGrid = () => {
     for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
@@ -185,6 +176,18 @@ const drawGame = () => {
     drawWalls();
     drawPlayer(player1);
     drawPlayer(player2);
+};
+
+const drawTimer = () => {
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText(`Time: ${Math.ceil(remainingTime)}s`, 20, 30);
+
+    if (remainingTime === 0) {
+        ctx.fillText('Game Over!', canvas.width / 2 - 50, canvas.height / 2);
+    }
+
+    return remainingTime;
 };
 
 const addTrail = (player: Player) => {
@@ -261,24 +264,10 @@ const updatePlayers = () => {
     addTrail(player2);
 };
 
-const gameDuration = 60;
-let gameStartTime = 0;
-
-const drawTimer = (currentTime: number) => {
-    const elapsedTime = (currentTime - gameStartTime) / 1000;
-    const remainingTime = Math.max(
-        0,
-        Math.ceil(gameDuration - elapsedTime)
-    );
-
-    ctx.fillStyle = 'white';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Time: ${remainingTime}s`, 20, 30);
-
-    if (remainingTime === 0) {
-        ctx.fillText('Game Over!', canvas.width / 2 - 50, canvas.height / 2);
-    }
-    return remainingTime;
+const updateTimer = (currentTime: number) => {
+    const deltaTime = (currentTime - lastFrameTime) / 1000;
+    remainingTime = Math.max(0, remainingTime - deltaTime);
+    lastFrameTime = currentTime;
 };
 
 const gameLoop = (currentTime: number) => {
@@ -287,14 +276,38 @@ const gameLoop = (currentTime: number) => {
         return;
     }
 
+    updateTimer(currentTime);
     updatePlayers();
     drawGame();
-    const remainingTime = drawTimer(currentTime);
 
-    if (remainingTime > 0) {
+    const timeLeft = drawTimer();
+
+    if (timeLeft > 0) {
         requestAnimationFrame(gameLoop);
     } else {
         gameIsRunning = false;
+    }
+};
+
+const resetGame = () => {
+    createGrid();
+
+    player1.x = player1.startX;
+    player1.y = player1.startY;
+
+    player2.x = player2.startX;
+    player2.y = player2.startY;
+
+    remainingTime = gameDuration;
+    lastFrameTime = performance.now();
+
+    keys.clear();
+    drawGame();
+    drawTimer();
+
+    if (currentScreen === 'game' && !gameIsRunning) {
+        gameIsRunning = true;
+        requestAnimationFrame(gameLoop);
     }
 };
 
@@ -306,11 +319,10 @@ const startGame = () => {
 
     if (!gameIsRunning) {
         gameIsRunning = true;
-        gameStartTime = performance.now();
-        gameLoop(gameStartTime);
+        lastFrameTime = performance.now();
+        requestAnimationFrame(gameLoop);
     }
 };
-
 
 const showMainMenu = () => {
     currentScreen = 'main';
@@ -378,6 +390,7 @@ window.addEventListener('resize', () => {
 
     if (currentScreen === 'game') {
         drawGame();
+        drawTimer();
     }
 });
 
